@@ -7,7 +7,7 @@ public class Player {
     static final String VERSION = "1.3";
 
     public static int betRequest(JsonNode request) {
-        System.out.println("Request output" + request.toPrettyString());
+        System.out.println("Request output: " + request.toPrettyString());
         return 1000;
     }
 
