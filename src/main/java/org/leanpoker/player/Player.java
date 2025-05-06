@@ -8,7 +8,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.7";
+    static final String VERSION = "1.8";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
@@ -16,12 +16,11 @@ public class Player {
         JsonNode holeCardsNode = getPlayerByName(request.get("players")).get("hole_cards");
         System.out.println("Players: " + holeCardsNode);
 
-
-
-        if (isPair(holeCardsNode)) {
+        // maybe increase amount of pair
+        if (isPair(holeCardsNode) || is10OrHigher(holeCardsNode)) {
             return 100;
         }
-        // 10 or higher
+        // fold
 
         return 10;
     }
@@ -72,5 +71,34 @@ public class Player {
             }
         }
         return isPair;
+    }
+
+    public static boolean is10OrHigher(JsonNode cardsNode) {
+        int index = 0;
+        boolean isHigh1 = false;
+        boolean isHigh2 = false;
+        if (cardsNode.isArray()) {
+            for (JsonNode cardNode : cardsNode) {
+
+                if (index == 0 && isHighRank(cardNode)) {
+                    isHigh1 = true;
+                } else if ((index == 1 && isHighRank(cardNode))) {
+                    isHigh2 = true;
+                }
+
+                index++;
+            }
+
+        }
+        boolean isBothHigh = isHigh1 && isHigh2;
+        System.out.print("The cards: " + cardsNode.toPrettyString());
+        System.out.println("isBothHigh " + isBothHigh);
+        return isHigh1 && isHigh2;
+    }
+
+    private static boolean isHighRank(JsonNode cardNode) {
+        String rank = cardNode.get("rank").asText();
+
+        return rank.equals("A") || rank.equals("K") || rank.equals("Q") || rank.equals("J") || rank.equals("10");
     }
 }
