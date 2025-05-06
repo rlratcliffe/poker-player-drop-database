@@ -8,7 +8,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.6";
+    static final String VERSION = "1.7";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
