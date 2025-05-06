@@ -32,7 +32,7 @@ public class Player {
         // community cards
         // do more than call, and raise
         // maybe care about only larger pairs
-        if (hasOneOrTwoPairs(allCards) || is10OrHigher(holeCardsNode)) {
+        if (hasOneOrTwoPairs(allCards) || is10OrHigher(allCards)) {
             return theCall;
         }
         // fold, be more specific
@@ -87,28 +87,29 @@ public class Player {
         return moreThanZeroPairs;
     }
 
+    public static boolean is10OrHigher(JsonNode allCards) {
+        Map<String, Integer> hasHighRank = new HashMap<>();
 
-    public static boolean is10OrHigher(JsonNode cardsNode) {
-        int index = 0;
-        boolean isHigh1 = false;
-        boolean isHigh2 = false;
-        if (cardsNode.isArray()) {
-            for (JsonNode cardNode : cardsNode) {
-
-                if (index == 0 && isHighRank(cardNode)) {
-                    isHigh1 = true;
-                } else if ((index == 1 && isHighRank(cardNode))) {
-                    isHigh2 = true;
+        if (allCards.isArray()) {
+            for (JsonNode cardNode : allCards) {
+                if (cardNode.has("rank") && isHighRank(cardNode)) {
+                    String rank = cardNode.get("rank").asText();
+                    hasHighRank.put(rank, hasHighRank.getOrDefault(rank, 0) + 1);
                 }
-
-                index++;
             }
-
         }
-        boolean isBothHigh = isHigh1 && isHigh2;
-        System.out.print("The cards: " + cardsNode.toPrettyString());
-        System.out.println("isBothHigh " + isBothHigh);
-        return isHigh1 && isHigh2;
+
+        // Count how many pairs we have
+        int highRankCount = 0;
+        for (Integer count : hasHighRank.values()) {
+            if (count == 2) {
+                highRankCount++;
+            }
+        }
+
+        boolean moreThanZeroHighRankCount = highRankCount > 0;
+        System.out.println("All cards " + allCards.toPrettyString() + " Has high rank count: " + moreThanZeroHighRankCount);
+        return moreThanZeroHighRankCount;
     }
 
     private static boolean isHighRank(JsonNode cardNode) {
