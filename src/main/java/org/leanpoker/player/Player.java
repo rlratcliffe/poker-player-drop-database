@@ -1,28 +1,38 @@
 package org.leanpoker.player;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.9";
+    static final String VERSION = "1.10";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
         System.out.println("Players: " + getPlayerByName(request.get("players")));
         JsonNode holeCardsNode = getPlayerByName(request.get("players")).get("hole_cards");
+
+        JsonNode communityCards = request.get("community_cards");
+
+        JsonNode allCards = getAllCards(communityCards, holeCardsNode);
+
         System.out.println("Players: " + holeCardsNode);
 
         int currentPlayer = request.get("node_action").asInt();
         int bet = request.get("players").get(currentPlayer).get("bet").asInt();
         int theCall = request.get("current_buy_in").asInt() - bet;
 
-        // actually raise if it's good
-        // maybe increase amount of pair
-        if (isPair(holeCardsNode) || is10OrHigher(holeCardsNode)) {
+        // community cards
+        // do more than call, and raise
+        // maybe care about only larger pairs
+        if (hasOneOrTwoPairs(allCards) || is10OrHigher(holeCardsNode)) {
             return theCall;
         }
         // fold, be more specific
@@ -51,32 +61,32 @@ public class Player {
                 .orElse(null);
     }
 
-    public static boolean isPair(JsonNode cardsNode) {
-        String rank1 = "";
-        String rank2 = "";
-        int index = 0;
-        boolean isPair = false;
-        if (cardsNode.isArray()) {
-            for (JsonNode cardNode : cardsNode) {
-                String rank = cardNode.get("rank").asText();
-                System.out.println("Found card with rank: " + rank);
 
-                if (index == 0) {
-                    rank1 = rank;
-                } else {
-                    rank2 = rank;
+    public static boolean hasOneOrTwoPairs(JsonNode allCards) {
+        Map<String, Integer> rankCounts = new HashMap<>();
+
+        if (allCards.isArray()) {
+            for (JsonNode cardNode : allCards) {
+                if (cardNode.has("rank")) {
+                    String rank = cardNode.get("rank").asText();
+                    rankCounts.put(rank, rankCounts.getOrDefault(rank, 0) + 1);
                 }
-
-                index++;
-            }
-
-            if (rank1.equals(rank2)) {
-                System.out.println("Rank 1 == rank 2");
-                isPair = true;
             }
         }
-        return isPair;
+
+        // Count how many pairs we have
+        int pairCount = 0;
+        for (Integer count : rankCounts.values()) {
+            if (count == 2) {
+                pairCount++;
+            }
+        }
+
+        boolean moreThanZeroPairs = pairCount > 0;
+        System.out.println("All cards " + allCards.toPrettyString() + " Has pairs: " + moreThanZeroPairs);
+        return moreThanZeroPairs;
     }
+
 
     public static boolean is10OrHigher(JsonNode cardsNode) {
         int index = 0;
@@ -105,5 +115,20 @@ public class Player {
         String rank = cardNode.get("rank").asText();
 
         return rank.equals("A") || rank.equals("K") || rank.equals("Q") || rank.equals("J") || rank.equals("10");
+    }
+
+    private static JsonNode getAllCards(JsonNode array1, JsonNode array2) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode combinedArray = mapper.createArrayNode();
+
+        if (array1.isArray()) {
+            combinedArray.addAll((ArrayNode) array1);
+        }
+
+        if (array2.isArray()) {
+            combinedArray.addAll((ArrayNode) array2);
+        }
+
+        return combinedArray;
     }
 }
