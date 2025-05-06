@@ -29,11 +29,19 @@ public class Player {
         int bet = request.get("players").get(currentPlayer).get("bet").asInt();
         int theCall = request.get("current_buy_in").asInt() - bet;
 
-        // community cards
-        // do more than call, and raise
+        int minimumRaise = 1;
+        try {
+            minimumRaise = request.get("minimum_raise").asInt();
+        } catch (Exception e) {
+            System.out.println("An exception occurred accessing minimum raise" + e.getMessage());
+        }
+
+        // flush
         // maybe care about only larger pairs
-        if (hasOneOrTwoPairs(allCards) || is10OrHigher(allCards)) {
+        if (is10OrHigher(allCards)) {
             return theCall;
+        } else if (hasOneOrTwoPairs(allCards)) {
+            return theCall + minimumRaise;
         }
         // fold, be more specific
 
