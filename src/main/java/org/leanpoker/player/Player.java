@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.10";
+    static final String VERSION = "1.11";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
@@ -25,7 +25,7 @@ public class Player {
 
         System.out.println("Players: " + holeCardsNode);
 
-        int currentPlayer = request.get("node_action").asInt();
+        int currentPlayer = request.get("in_action").asInt();
         int bet = request.get("players").get(currentPlayer).get("bet").asInt();
         int theCall = request.get("current_buy_in").asInt() - bet;
 
