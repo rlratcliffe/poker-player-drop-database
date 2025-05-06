@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class Player {
 
-    static final String VERSION = "Default Java folding player";
+    static final String VERSION = "1.1";
 
     public static int betRequest(JsonNode request) {
-        return 0;
+        return 1;
     }
 
     public static void showdown(JsonNode game) {
