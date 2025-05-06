@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.15";
+    static final String VERSION = "1.16";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
@@ -36,7 +36,12 @@ public class Player {
             System.out.println("An exception occurred accessing minimum raise" + e.getMessage());
         }
 
-        // flush
+        System.out.println("All cards " + allCards.toPrettyString());
+
+        if (isPotentialFlush(allCards)) {
+            System.out.println("Is potential flush and raising");
+            return theCall + minimumRaise;
+        }
         // maybe care about only larger pairs
         if (is10OrHigher(allCards)) {
             return theCall;
@@ -113,6 +118,30 @@ public class Player {
         boolean notEmpty = !hasHighRank.isEmpty();
         System.out.println("All cards " + allCards.toPrettyString() + " Has high rank count: " + notEmpty);
         return notEmpty;
+    }
+
+    public static boolean isPotentialFlush(JsonNode allCards) {
+        boolean hasAllSameSuit = true; // Start with true assumption
+
+        if (allCards.isArray() && !allCards.isEmpty()) {
+            String suit = allCards.get(0).get("suit").asText();
+            System.out.println("Checking if all cards match suit: " + suit);
+
+            for (JsonNode cardNode : allCards) {
+                String currentSuit = cardNode.get("suit").asText();
+                if (!suit.equals(currentSuit)) {
+                    System.out.println("Found different suit: " + currentSuit);
+                    hasAllSameSuit = false;
+                    break; // Exit the loop as soon as we find a different suit
+                }
+            }
+        } else {
+            // No cards or not an array
+            hasAllSameSuit = false;
+        }
+
+        System.out.println("All cards " + allCards.toPrettyString() + " Has all same suit: " + hasAllSameSuit);
+        return hasAllSameSuit;
     }
 
     private static boolean isHighRank(JsonNode cardNode) {
