@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.13";
+    static final String VERSION = "1.14";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
@@ -102,17 +102,9 @@ public class Player {
             }
         }
 
-        // Count how many pairs we have
-        int highRankCount = 0;
-        for (Integer count : hasHighRank.values()) {
-            if (count == 2) {
-                highRankCount++;
-            }
-        }
-
-        boolean moreThanZeroHighRankCount = highRankCount > 0;
-        System.out.println("All cards " + allCards.toPrettyString() + " Has high rank count: " + moreThanZeroHighRankCount);
-        return moreThanZeroHighRankCount;
+        boolean notEmpty = !hasHighRank.isEmpty();
+        System.out.println("All cards " + allCards.toPrettyString() + " Has high rank count: " + notEmpty);
+        return notEmpty;
     }
 
     private static boolean isHighRank(JsonNode cardNode) {
