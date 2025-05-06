@@ -13,6 +13,7 @@ public class Player {
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
         System.out.println("Players: " + getPlayerByName(request.get("players")));
+        System.out.println("Players: " + getPlayerByName(request.get("players")).get("hole_cards"));
         // 10 or higher
         // pair
         return 10;
