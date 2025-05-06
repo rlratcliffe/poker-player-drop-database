@@ -8,7 +8,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.8";
+    static final String VERSION = "1.9";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
@@ -16,13 +16,18 @@ public class Player {
         JsonNode holeCardsNode = getPlayerByName(request.get("players")).get("hole_cards");
         System.out.println("Players: " + holeCardsNode);
 
+        int currentPlayer = request.get("node_action").asInt();
+        int bet = request.get("players").get(currentPlayer).get("bet").asInt();
+        int theCall = request.get("current_buy_in").asInt() - bet;
+
+        // actually raise if it's good
         // maybe increase amount of pair
         if (isPair(holeCardsNode) || is10OrHigher(holeCardsNode)) {
-            return 100;
+            return theCall;
         }
-        // fold
+        // fold, be more specific
 
-        return 10;
+        return 0;
     }
 
     public static void showdown(JsonNode game) {
