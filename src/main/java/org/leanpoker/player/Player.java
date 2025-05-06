@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.12";
+    static final String VERSION = "1.13";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
@@ -94,7 +94,10 @@ public class Player {
             for (JsonNode cardNode : allCards) {
                 if (cardNode.has("rank") && isHighRank(cardNode)) {
                     String rank = cardNode.get("rank").asText();
+                    System.out.println("RAnk in check 10 or higher: " + rank);
                     hasHighRank.put(rank, hasHighRank.getOrDefault(rank, 0) + 1);
+                } else {
+                    System.out.println("Rank is not 10 or higher");
                 }
             }
         }
