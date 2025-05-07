@@ -12,11 +12,8 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.26";
+    static final String VERSION = "1.25";
 
-    static final String EARLY_POSITION = "EARLY";
-    static final String MIDDLE_POSITION = "MIDDLE";
-    static final String LATE_POSITION = "LATE";
 
     public static void printIt(JsonNode request, String str) {
         System.out.println("VERSION: " + VERSION +
@@ -51,44 +48,21 @@ public class Player {
 
         printIt(request, "All cards " + allCards);
 
-        String position = getPosition(request);
-        printIt(request, "Our position: " + position);
-
         // we are calling with higher cards and they are raising
         // look at logs of why we're calling with pairs instead of raising
-        if (!position.equals(EARLY_POSITION)) {
-            if (isPotentialFlush(request, allCards)) {
-                printIt(request, "Is potential flush and raising " + newRaise);
-                return newRaise;
-            }
-            // straight
-            // maybe care about only larger pairs
-            if (is10OrHigher(request, allCards)) {
-                printIt(request, "Is 10 or higher " + allCards + " " + theCall);
-                return theCall;
-            } else if (hasOneOrTwoPairs(request, allCards)) {
-                printIt(request, "Has pairs, should be raising " + allCards + " The raise: " + newRaise + " The call: " + theCall);
-                return newRaise;
-            }
-        } else {
-            // In early position, be more conservative
-            if (isPotentialFlush(request, allCards)) {
-                printIt(request, "Early position with potential flush, just calling: " + theCall);
-                return theCall; // Just call with flush draws in early position
-            }
 
-            if (is10OrHigher(request, allCards) && isHighPair(request, allCards)) {
-                printIt(request, "Early position with high pair, raising: " + newRaise);
-                return newRaise;
-            } else if (is10OrHigher(request, allCards)) {
-                printIt(request, "Early position with 10 or higher but no pair, just calling: " + theCall);
-                return theCall;
-            }
-
-            if (hasOneOrTwoPairs(request, allCards) && isHighPair(request, allCards)) {
-                printIt(request, "Early position with high pair, should be raising: " + newRaise);
-                return newRaise;
-            }
+        if (isPotentialFlush(request, allCards)) {
+            printIt(request, "Is potential flush and raising " + newRaise);
+            return newRaise;
+        }
+        // straight
+        // maybe care about only larger pairs
+        if (is10OrHigher(request, allCards)) {
+            printIt(request, "Is 10 or higher " + allCards + " " + theCall);
+            return theCall;
+        } else if (hasOneOrTwoPairs(request, allCards)) {
+             printIt(request, "Has pairs, should be raising " + allCards + " The raise: " + newRaise + " The call: " + theCall);
+            return newRaise;
         }
         // fold, be more specific
         System.out.println("We are folding");
@@ -205,49 +179,5 @@ public class Player {
         }
 
         return combinedArray;
-    }
-
-    public static String getPosition(JsonNode request) {
-        int dealerPosition = request.get("dealer").asInt();
-        int currentPlayer = request.get("in_action").asInt();
-        int totalPlayers = request.get("players").size();
-
-        // Calculate relative position
-        int relativePosition = (currentPlayer - dealerPosition + totalPlayers) % totalPlayers;
-
-        // Determine position type
-        if (relativePosition <= totalPlayers / 3) {
-            return EARLY_POSITION;
-        } else if (relativePosition <= 2 * totalPlayers / 3) {
-            return MIDDLE_POSITION;
-        } else {
-            return LATE_POSITION;
-        }
-    }
-
-    public static boolean isHighPair(JsonNode request, JsonNode allCards) {
-        Map<String, Integer> rankCounts = new HashMap<>();
-
-        if (allCards.isArray()) {
-            for (JsonNode cardNode : allCards) {
-                if (cardNode.has("rank")) {
-                    String rank = cardNode.get("rank").asText();
-                    rankCounts.put(rank, rankCounts.getOrDefault(rank, 0) + 1);
-                }
-            }
-        }
-
-        // Check for pairs of 10 or higher
-        for (Map.Entry<String, Integer> entry : rankCounts.entrySet()) {
-            if (entry.getValue() >= 2) { // It's a pair
-                String rank = entry.getKey();
-                if (rank.equals("10") || rank.equals("J") || rank.equals("Q") || rank.equals("K") || rank.equals("A")) {
-                    printIt(request, "Found high pair: " + rank);
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 }
