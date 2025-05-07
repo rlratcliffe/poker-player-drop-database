@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.17";
+    static final String VERSION = "1.18";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
@@ -42,12 +42,13 @@ public class Player {
         // look at logs of why w're calling with pairs instead of raising
 
         if (isPotentialFlush(allCards)) {
-            System.out.println("Is potential flush and raising");
+            System.out.println("Is potential flush and raising " + theCall + minimumRaise);
             return theCall + minimumRaise;
         }
         // straight
         // maybe care about only larger pairs
         if (is10OrHigher(allCards)) {
+            System.out.println("Is 10 or higher " + allCards.toPrettyString() + " " + theCall);
             return theCall;
         } else if (hasOneOrTwoPairs(allCards)) {
             int newBet = theCall + minimumRaise;
