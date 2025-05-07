@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.23";
+    static final String VERSION = "1.24";
     public static String gameId;
 
 
@@ -47,7 +47,7 @@ public class Player {
         }
         int newRaise =  theCall + minimumRaise;
 
-        printIt("All cards " + allCards.toPrettyString());
+        printIt("All cards " + allCards);
 
         // we are calling with higher cards and they are raising
         // look at logs of why w're calling with pairs instead of raising
@@ -59,14 +59,14 @@ public class Player {
         // straight
         // maybe care about only larger pairs
         if (is10OrHigher(allCards)) {
-            printIt("Is 10 or higher " + allCards.toPrettyString() + " " + theCall);
+            printIt("Is 10 or higher " + allCards + " " + theCall);
             return theCall;
         } else if (hasOneOrTwoPairs(allCards)) {
-             printIt("Has pairs, should be raising " + allCards.toPrettyString() + " The raise: " + newRaise + " The call: " + theCall);
+             printIt("Has pairs, should be raising " + allCards + " The raise: " + newRaise + " The call: " + theCall);
             return newRaise;
         }
         // fold, be more specific
-
+        System.out.println("We are folding");
         return 0;
     }
 
