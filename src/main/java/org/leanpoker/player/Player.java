@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.26";
+    static final String VERSION = "1.27";
 
     static final String EARLY_POSITION = "EARLY";
     static final String MIDDLE_POSITION = "MIDDLE";
@@ -54,20 +54,43 @@ public class Player {
         String position = getPosition(request);
         printIt(request, "Our position: " + position);
 
-        // we are calling with higher cards and they are raising
-        // look at logs of why we're calling with pairs instead of raising
-        if (!position.equals(EARLY_POSITION)) {
+        // Position-based strategy
+        if (position.equals(LATE_POSITION)) {
+            // In late position, we can be more aggressive
+            if (isPotentialFlush(request, allCards)) {
+                printIt(request, "Late position with potential flush, raising higher: " + (newRaise * 2));
+                return newRaise * 2; // More aggressive raise in late position
+            }
+
+            if (is10OrHigher(request, allCards)) {
+                printIt(request, "Late position with 10 or higher, calling or raising: " + newRaise);
+                return newRaise; // Raise instead of just calling in late position
+            }
+
+            if (hasOneOrTwoPairs(request, allCards)) {
+                printIt(request, "Late position with pairs, raising aggressively: " + (newRaise * 2));
+                return newRaise * 2; // More aggressive with pairs in late position
+            }
+
+            // In late position, sometimes play mediocre hands
+            if (isMediocreHand(request, allCards)) {
+                printIt(request, "Late position with mediocre hand, calling: " + theCall);
+                return theCall;
+            }
+        } else if (position.equals(MIDDLE_POSITION)) {
+            // In middle position, standard strategy
             if (isPotentialFlush(request, allCards)) {
                 printIt(request, "Is potential flush and raising " + newRaise);
                 return newRaise;
             }
-            // straight
-            // maybe care about only larger pairs
+
             if (is10OrHigher(request, allCards)) {
                 printIt(request, "Is 10 or higher " + allCards + " " + theCall);
                 return theCall;
-            } else if (hasOneOrTwoPairs(request, allCards)) {
-                printIt(request, "Has pairs, should be raising " + allCards + " The raise: " + newRaise + " The call: " + theCall);
+            }
+
+            if (hasOneOrTwoPairs(request, allCards)) {
+                printIt(request, "Has pairs, should be raising " + allCards + " The raise: " + newRaise);
                 return newRaise;
             }
         } else {
@@ -90,6 +113,8 @@ public class Player {
                 return newRaise;
             }
         }
+
+
         // fold, be more specific
         System.out.println("We are folding");
         return 0;
@@ -249,5 +274,42 @@ public class Player {
         }
 
         return false;
+    }
+
+    public static boolean isMediocreHand(JsonNode request, JsonNode allCards) {
+        // Check for connected cards like 8-9, 7-8, etc.
+        if (allCards.isArray() && allCards.size() >= 2) {
+            int card1Value = getCardValue(allCards.get(0).get("rank").asText());
+            int card2Value = getCardValue(allCards.get(1).get("rank").asText());
+
+            // Connected cards or one-gap cards
+            if (Math.abs(card1Value - card2Value) <= 2) {
+                printIt(request, "Found connected cards: " + card1Value + " and " + card2Value);
+                return true;
+            }
+
+            // Same suit (potential flush)
+            if (allCards.get(0).get("suit").asText().equals(allCards.get(1).get("suit").asText())) {
+                printIt(request, "Found suited cards");
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static int getCardValue(String rank) {
+        switch (rank) {
+            case "A": return 14;
+            case "K": return 13;
+            case "Q": return 12;
+            case "J": return 11;
+            default:
+                try {
+                    return Integer.parseInt(rank);
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
+        }
     }
 }
