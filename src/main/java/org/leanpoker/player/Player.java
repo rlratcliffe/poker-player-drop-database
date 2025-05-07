@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.22";
+    static final String VERSION = "1.23";
     public static String gameId;
 
 
@@ -62,7 +62,7 @@ public class Player {
             printIt("Is 10 or higher " + allCards.toPrettyString() + " " + theCall);
             return theCall;
         } else if (hasOneOrTwoPairs(allCards)) {
-            printIt("Has pairs, should be raising " + allCards.toPrettyString() + " " + newRaise);
+             printIt("Has pairs, should be raising " + allCards.toPrettyString() + " The raise: " + newRaise + " The call: " + theCall);
             return newRaise;
         }
         // fold, be more specific
