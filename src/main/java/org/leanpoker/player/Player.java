@@ -29,6 +29,8 @@ public class Player {
         int bet = request.get("players").get(currentPlayer).get("bet").asInt();
         int theCall = request.get("current_buy_in").asInt() - bet;
 
+        System.out.println("Current game_id" + request.get("game_id"));
+
         int minimumRaise = 1;
         try {
             minimumRaise = request.get("minimum_raise").asInt();
