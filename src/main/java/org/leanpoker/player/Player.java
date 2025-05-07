@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.16";
+    static final String VERSION = "1.17";
 
     public static int betRequest(JsonNode request) {
         System.out.println("Request output: " + request.toPrettyString());
@@ -38,15 +38,21 @@ public class Player {
 
         System.out.println("All cards " + allCards.toPrettyString());
 
+        // we are calling with higher cards and they are raising
+        // look at logs of why w're calling with pairs instead of raising
+
         if (isPotentialFlush(allCards)) {
             System.out.println("Is potential flush and raising");
             return theCall + minimumRaise;
         }
+        // straight
         // maybe care about only larger pairs
         if (is10OrHigher(allCards)) {
             return theCall;
         } else if (hasOneOrTwoPairs(allCards)) {
-            return theCall + minimumRaise;
+            int newBet = theCall + minimumRaise;
+            System.out.println("Has pairs, should be raising " + allCards.toPrettyString() + " " + newBet);
+            return newBet;
         }
         // fold, be more specific
 
