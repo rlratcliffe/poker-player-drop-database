@@ -12,57 +12,56 @@ import java.util.stream.StreamSupport;
 
 public class Player {
 
-    static final String VERSION = "1.24";
-    public static String gameId;
+    static final String VERSION = "1.25";
 
 
-    public static void printIt(String str) {
+    public static void printIt(JsonNode request, String str) {
         System.out.println("VERSION: " + VERSION +
-            " gameId: " + gameId + " content: " + str);
+            " gameId: " + request.get("game_id").toString() + " content: " + str);
     }
 
     public static int betRequest(JsonNode request) {
-        gameId = request.get("game_id").toString();
-        printIt("Request output: " + request.toPrettyString());
-        printIt("Players: " + getPlayerByName(request.get("players")));
-        JsonNode holeCardsNode = getPlayerByName(request.get("players")).get("hole_cards");
+
+        printIt(request, "Request output: " + request.toPrettyString());
+        printIt(request, "Players: " + getPlayerByName(request, request.get("players")));
+        JsonNode holeCardsNode = getPlayerByName(request, request.get("players")).get("hole_cards");
 
         JsonNode communityCards = request.get("community_cards");
 
         JsonNode allCards = getAllCards(communityCards, holeCardsNode);
 
-        printIt("Players: " + holeCardsNode);
+        printIt(request, "Players: " + holeCardsNode);
 
         int currentPlayer = request.get("in_action").asInt();
         int bet = request.get("players").get(currentPlayer).get("bet").asInt();
         int theCall = request.get("current_buy_in").asInt() - bet;
 
-        printIt("Current game_id" + request.get("game_id"));
+        printIt(request, "Current game_id" + request.get("game_id"));
 
         int minimumRaise = 1;
         try {
             minimumRaise = request.get("minimum_raise").asInt();
         } catch (Exception e) {
-            printIt("An exception occurred accessing minimum raise" + e.getMessage());
+            printIt(request, "An exception occurred accessing minimum raise" + e.getMessage());
         }
         int newRaise =  theCall + minimumRaise;
 
-        printIt("All cards " + allCards);
+        printIt(request, "All cards " + allCards);
 
         // we are calling with higher cards and they are raising
-        // look at logs of why w're calling with pairs instead of raising
+        // look at logs of why we're calling with pairs instead of raising
 
-        if (isPotentialFlush(allCards)) {
-            printIt("Is potential flush and raising " + newRaise);
+        if (isPotentialFlush(request, allCards)) {
+            printIt(request, "Is potential flush and raising " + newRaise);
             return newRaise;
         }
         // straight
         // maybe care about only larger pairs
-        if (is10OrHigher(allCards)) {
-            printIt("Is 10 or higher " + allCards + " " + theCall);
+        if (is10OrHigher(request, allCards)) {
+            printIt(request, "Is 10 or higher " + allCards + " " + theCall);
             return theCall;
-        } else if (hasOneOrTwoPairs(allCards)) {
-             printIt("Has pairs, should be raising " + allCards + " The raise: " + newRaise + " The call: " + theCall);
+        } else if (hasOneOrTwoPairs(request, allCards)) {
+             printIt(request, "Has pairs, should be raising " + allCards + " The raise: " + newRaise + " The call: " + theCall);
             return newRaise;
         }
         // fold, be more specific
@@ -73,9 +72,9 @@ public class Player {
     public static void showdown(JsonNode game) {
     }
 
-    public static JsonNode getPlayerByName(JsonNode playersNode) {
+    public static JsonNode getPlayerByName(JsonNode request, JsonNode playersNode) {
         if (!playersNode.isArray()) {
-            printIt("Returned null from getPlayerByName");
+            printIt(request, "Returned null from getPlayerByName");
             return null;
         }
 
@@ -92,7 +91,7 @@ public class Player {
     }
 
 
-    public static boolean hasOneOrTwoPairs(JsonNode allCards) {
+    public static boolean hasOneOrTwoPairs(JsonNode request, JsonNode allCards) {
         Map<String, Integer> rankCounts = new HashMap<>();
 
         if (allCards.isArray()) {
@@ -113,41 +112,41 @@ public class Player {
         }
 
         boolean moreThanZeroPairs = pairCount > 0;
-        printIt("All cards " + allCards.toPrettyString() + " Has pairs: " + moreThanZeroPairs);
+        printIt(request, "All cards " + allCards.toPrettyString() + " Has pairs: " + moreThanZeroPairs);
         return moreThanZeroPairs;
     }
 
-    public static boolean is10OrHigher(JsonNode allCards) {
+    public static boolean is10OrHigher(JsonNode request, JsonNode allCards) {
         Map<String, Integer> hasHighRank = new HashMap<>();
 
         if (allCards.isArray()) {
             for (JsonNode cardNode : allCards) {
                 if (cardNode.has("rank") && isHighRank(cardNode)) {
                     String rank = cardNode.get("rank").asText();
-                    printIt("RAnk in check 10 or higher: " + rank);
+                    printIt(request, "RAnk in check 10 or higher: " + rank);
                     hasHighRank.put(rank, hasHighRank.getOrDefault(rank, 0) + 1);
                 } else {
-                    printIt("Rank is not 10 or higher");
+                    printIt(request, "Rank is not 10 or higher");
                 }
             }
         }
 
         boolean notEmpty = !hasHighRank.isEmpty();
-        printIt("All cards " + allCards.toPrettyString() + " Has high rank count: " + notEmpty);
+        printIt(request, "All cards " + allCards.toPrettyString() + " Has high rank count: " + notEmpty);
         return notEmpty;
     }
 
-    public static boolean isPotentialFlush(JsonNode allCards) {
+    public static boolean isPotentialFlush(JsonNode request, JsonNode allCards) {
         boolean hasAllSameSuit = true; // Start with true assumption
 
         if (allCards.isArray() && !allCards.isEmpty()) {
             String suit = allCards.get(0).get("suit").asText();
-            printIt("Checking if all cards match suit: " + suit);
+            printIt(request, "Checking if all cards match suit: " + suit);
 
             for (JsonNode cardNode : allCards) {
                 String currentSuit = cardNode.get("suit").asText();
                 if (!suit.equals(currentSuit)) {
-                    printIt("Found different suit: " + currentSuit);
+                    printIt(request, "Found different suit: " + currentSuit);
                     hasAllSameSuit = false;
                     break; // Exit the loop as soon as we find a different suit
                 }
@@ -157,7 +156,7 @@ public class Player {
             hasAllSameSuit = false;
         }
 
-        printIt("All cards " + allCards.toPrettyString() + " Has all same suit: " + hasAllSameSuit);
+        printIt(request, "All cards " + allCards.toPrettyString() + " Has all same suit: " + hasAllSameSuit);
         return hasAllSameSuit;
     }
 
